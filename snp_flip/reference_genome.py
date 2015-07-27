@@ -29,6 +29,7 @@ def get_reference_genome_data(bim_table, genome_fasta):
 
     return pd.concat(chromosome_data)
 
+
 def _check_for_N(snps, chromosome):
 
     nb_ns = sum([1 for snp in snps if snp == "N"])
