@@ -23,11 +23,24 @@ def get_reference_genome_data(bim_table, genome_fasta):
         _get_snps = itemgetter(*list(positions))
 
         snp_nucleotides = [snp.upper() for snp in _get_snps(str(nucleotides))]
-        chromosome_data.append(pd.Series(snp_nucleotides))
+        chromosome_data.append(pd.DataFrame(snp_nucleotides))
 
         _check_for_N(snp_nucleotides, chromosome)
 
-    return pd.concat(chromosome_data)
+    genome_data = pd.concat(chromosome_data)
+    genome_data.columns = ["reference"]
+    print(genome_data)
+    print(type(genome_data))
+    genome_data["reference_rev"] = genome_data["reference"].apply(
+        lambda n: {"A": "T",
+                   "T": "A",
+                   "C": "G",
+                   "G": "C"}[n])
+
+    print(bim_table)
+    print(genome_data)
+
+    return genome_data.reset_index(drop=True)
 
 
 def _check_for_N(snps, chromosome):

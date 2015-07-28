@@ -22,8 +22,8 @@ def describe_get_reference_genome_data():
 
 @pytest.fixture
 def expected_result():
-    return pd.read_table(StringIO("""A\nT\nC\nA\n"""), squeeze=True,
-                         header=None)
+    return pd.read_table(StringIO("""A  T\nT   A\nC   G\nA   T\n"""),
+                         header=None, sep="\s+")
 
 
 @pytest.fixture
