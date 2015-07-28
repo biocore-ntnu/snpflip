@@ -16,6 +16,8 @@ def get_reference_genome_data(bim_table, genome_fasta):
     pyfaidx_genome = Fasta(genome_fasta, as_raw=True, read_ahead=100000)
     genome_dict = convert_fa_chromosome_names(pyfaidx_genome)
 
+    _warn_about_bim_chromos_not_in_fa(bim_table, genome_dict)
+
     chromosome_data = []
     for chromosome, nucleotides in genome_dict.items():
 
@@ -29,18 +31,22 @@ def get_reference_genome_data(bim_table, genome_fasta):
 
     genome_data = pd.concat(chromosome_data)
     genome_data.columns = ["reference"]
-    print(genome_data)
-    print(type(genome_data))
     genome_data["reference_rev"] = genome_data["reference"].apply(
         lambda n: {"A": "T",
                    "T": "A",
                    "C": "G",
                    "G": "C"}[n])
 
-    print(bim_table)
-    print(genome_data)
 
     return genome_data.reset_index(drop=True)
+
+
+def _warn_about_bim_chromos_not_in_fa(bim_table, genome_dict):
+
+    for chromosome in bim_table["chromosome"].drop_duplicates():
+        if chromosome not in genome_dict:
+            print("Chromosome {} in .bim, but not in fasta file.".format(
+                chromosome), file=stderr)
 
 
 def _check_for_N(snps, chromosome):
