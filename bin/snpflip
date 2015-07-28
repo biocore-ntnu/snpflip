@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+"""
+snpflip
+
+Report reverse and ambiguous strand SNPs.
+(Visit github.com/endrebak/snp-flip for examples and help.)
+
+Usage:
+    snpflip --fasta-genome=FA --bim-file=BIM [--output-prefix=PRE]
+    snpflip --help
+
+Arguments:
+    -f FA --fasta-genome=FA    fasta genome
+    -b BIM --bim-file=BIM      plink binary format plink file
+
+Options:
+    -h --help                   show this message
+    -o PRE --output-prefix=PRE  the prefix of the output-files [default: output/snpflip]
+"""
+
+import docopt
+
+from sys import stdout
+from snp_flip.table import create_snp_table, find_strand
+
+if __name__ == '__main__':
+    args = docopt.docopt(__doc__)
+    print(args)
+    snp_table = create_snp_table(args["--bim-file"], args["--fasta-genome"])
+    snp_table = find_strand(snp_table)
+    snp_table.to_csv(stdout, sep="\t")
