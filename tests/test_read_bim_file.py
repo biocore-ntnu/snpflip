@@ -26,14 +26,16 @@ def bim_file(tmpdir, bim_string):
 
 @pytest.fixture
 def bim_string():
-    return """21	rs11511647	0	26765	A	T
+    return """
+8	rs11252127	0	52087	A	C
+8	rs12255619	0	52481	G	T
+9	rs10751931	0	49949	C	T
+9	rs10904045	0	48426	A	T
+10	rs12775203	0	52277	A	A
+21	rs11511647	0	26765	A	T
 X	rs3883674	0	32380	C	G
 X	rs12218882	0	48172	T	T
-9	rs10904045	0	48426	A	T
-9	rs10751931	0	49949	C	T
-8	rs11252127	0	52087	A	C
-10	rs12775203	0	52277	A	A
-8	rs12255619	0	52481	G	T"""
+    """
 
 @pytest.fixture
 def expected_df(bim_string):
