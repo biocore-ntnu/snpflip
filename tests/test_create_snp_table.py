@@ -16,6 +16,13 @@ def test_create_snp_table(bim_file, fa_file, expected_result):
 
     assert actual_result.equals(expected_result)
 
+@pytest.fixture
+def fa_file(tmpdir):
+
+    genome_fa = tmpdir.join("genome.fa")
+    genome_fa.write(u""">chr1\nACGTTCCG\n>chr2\nAAC\n""")
+    return str(genome_fa)
+
 
 @pytest.fixture
 def bim_file(bim_string, tmpdir):
@@ -24,13 +31,6 @@ def bim_file(bim_string, tmpdir):
     bim.write(bim_string)
     return str(bim)
 
-
-@pytest.fixture
-def fa_file(tmpdir):
-
-    genome_fa = tmpdir.join("genome.fa")
-    genome_fa.write(u""">chr1\nACGTTCCG\n>chr2\nAAC\n""")
-    return str(genome_fa)
 
 @pytest.fixture
 def bim_string():
