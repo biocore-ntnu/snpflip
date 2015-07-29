@@ -1,6 +1,6 @@
 #snpflip
 
-snpflip outputs each reverse strand and ambiguous strand SNP in your GWAS data.
+snpflip finds reverse and ambiguous strand SNPs.
 
 ##Main use cases
 
@@ -16,21 +16,27 @@ snpflip outputs each reverse strand and ambiguous strand SNP in your GWAS data.
 ```
 snpflip
 
-Report reverse strand and ambiguous strand SNPs.
-(Visit github.com/endrebak/snp-flip for examples and help.)
+Report reverse and ambiguous strand SNPs.
+(Visit github.com/endrebak/snpflip for examples and help.)
 
 Usage:
     snpflip --fasta-genome=FA --bim-file=BIM [--output-prefix=PRE]
     snpflip --help
 
 Arguments:
-    -f FA --fasta-genome=FA    fasta genome
-    -b BIM --bim-file=BIM      plink bed file (extended variant information file)
+    -f FA --fasta-genome=FA     fasta genome
+    -b BIM --bim-file=BIM       plink bed file (extended variant information)
 
 Options:
     -h --help                   show this message
     -o PRE --output-prefix=PRE  the prefix of the output-files
-    (./snpflip_output/<bim_basename> by default)
+                                (./snpflip_output/<bim_basename> by default)
+
+Note:
+    To enable snpflip to match the chromosomes in the `.bim` and `.fa` files, the
+    chromosomes in the `.bim` file must be called `1, 2, ... X, Y, M`
+    while the chromosomes in the fasta file must be called the same, or
+    `chr1, chr2, ... chrX, chrY, chrM`
 ```
 
 ##Output
@@ -40,58 +46,60 @@ The output files are:
 - `<prefix>.ambiguous` - The SNPs that cannot be assigned to a strand.
 - `<prefix>.annotated_bim` - Strand annotated bim table.
 
-
-which means the snpflip output files can be used as input to Plink. This is convenient if you want to remove the bad or ambiguous SNPs or to flip the SNPs that are on the reverse strand.
-
-snpflip is not able to find out whether an insertion/deletion or structural variant is on the correct strand. If you find reverse strand SNPs in your dataset, this is an indication that you cannot trust the strandedness of your data. Hence, you might want to remove all structural variants and insertions/deletions. This can be done by giving plink the flag `--snps-only no-DI`.
+The `.reverse` and `.ambiguous` output files can be used as input to Plink. This is convenient if you want to remove the ambiguous strand SNPs or flip the SNPs that are on the reverse strand.
 
 ####Example usage with plink:
 
-```python2 snipflip.py -b snp_data.bim -rgf genome.fa -op snpflip_output```
+```snipflip -b snp_data.bim -f genome.fa -op snpflip_output```
 
 ```plink --file snp_data --flip snpflip_output.reverse --make-bed```
-
 
 ##Extended example
 
 This example uses the example files in the example_files catalog.
 
 ```
-endrebak@tang:~/biocore/snpflip$ cat example_files/reference_genome.fa
+ cat example_files/example.fa
 >chr1
 ACT
 >chr2
 CCC
-endrebak@tang:~/biocore/snpflip$ cat example_files/example.bim
+>chrY
+ACT
+
+$ cat example_files/example.bim
 1 snp1 0 1 A C
 1 snp2 0 2 A T
 1 snp3 0 3 A G
 2 snp4 0 1 A G
 2 esv5 0 2 AA G
-endrebak@tang:~/biocore/snpflip$ python2 snpflip.py -b example_files/example.bim -rgf \
- example_files/reference_genome.fa -op extended_example
-Loading reference genome file example_files/reference_genome.fa
-***
-Results for example_files/example.bim
-***
-                          Reverse strand      Forward strand       Ambiguous snp
-         Monomorphic                   0                   0                   0
-         Polymorphic                   2                   1                   1
-  Structural variant                  NA                  NA                   1
-         Invalid snp                  NA                  NA                   0
-Output files written with prefix extended_example
-endrebak@tang:~/biocore/snpflip$ cat extended_example.ambiguous
-snp2    1    2    A    T    C
-endrebak@tang:~/biocore/snpflip$ cat extended_example.reverse
-snp3    1    3    A    G    T
-snp4	2    1    A    G    C
+Y snp6 0 2 A G
+
+$ snpflip -b examples/example.bim -f \
+ examples/example.fa -op extended_example
+
+$ head extended_example.annotated_bim
+chromosome	snp_name	genetic_distance	position	allele_1	allele_2	reference	reference_rev	strand
+1	snp1	0	1	A	C	A	T	forward
+1	snp2	0	2	A	T	C	G	ambiguous
+1	snp3	0	3	A	G	T	A	reverse
+2	snp4	0	1	A	G	C	G	reverse
+2	esv5	0	2	AA	G	C	G	reverse
+Y	snp6	0	2	A	G	C	G	reverse
+
+$ head extended_example.ambiguous
+snp2
+
+$ head extended_example.reverse
+snp3
+snp4
+esv5
+snp6
 ```
 
-##Requirements
+##Dependencies
 
-The only third-party module requirement is [Biopython](http://biopython.org/). It is only used in a few lines (~5) to do reference genome lookups and can easily be changed to use the library of your choice.
-
-To allow snpflip to map the chromosomes in the .bim and .fa files, the chromosome names need to be 1, 2, .., X, Y in the bim file and chr1, chr2, ..., chrX, chrY in the fasta file. (This is the standard convention.) See the files in the example_files catalog for examples.
+`pandas`, `docopt` and `pyfaidx`. These are automatically installed when using pip.
 
 ##FAQ
 
@@ -105,15 +113,8 @@ Use [Plink](https://www.cog-genomics.org/plink2/data) to convert your files to t
 
 Since the reference genome is based on the forward strand, finding an 'A' in the reference genome and the bim-file for said SNP tells you that it is from the forward strand. If the SNP were a 'T' it would have been a reverse strand SNP.
 
-####Why do I get a 'KeyError'?
-
-You need to make sure that your bim and fasta files follow the chromosome naming conventions outlined in the "Requirements" section above.
-
-
 ##Issues
-See https://github.com/endrebak/snipflip/issues
 
-No issue is too small. I will entertain all feature requests. Please ask support questions by raising an issue.
+See https://github.com/endrebak/snpflip/issues
 
-##Todo
-Add unit-tests.
+Please ask support questions by raising an issue.

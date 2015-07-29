@@ -3,21 +3,27 @@
 """
 snpflip
 
-Report reverse strand and ambiguous strand SNPs.
-(Visit github.com/endrebak/snp-flip for examples and help.)
+Report reverse and ambiguous strand SNPs.
+(Visit github.com/endrebak/snpflip for examples and help.)
 
 Usage:
     snpflip --fasta-genome=FA --bim-file=BIM [--output-prefix=PRE]
     snpflip --help
 
 Arguments:
-    -f FA --fasta-genome=FA    fasta genome
-    -b BIM --bim-file=BIM      plink bed file (extended variant information file)
+    -f FA --fasta-genome=FA     fasta genome
+    -b BIM --bim-file=BIM       plink bed file (extended variant information)
 
 Options:
     -h --help                   show this message
     -o PRE --output-prefix=PRE  the prefix of the output-files
                                 (./snpflip_output/<bim_basename> by default)
+
+Note:
+    To enable snpflip to match the chromosomes in the `.bim` and `.fa` files, the
+    chromosomes in the `.bim` file must be called `1, 2, ... X, Y, M`
+    while the chromosomes in the fasta file must be called the same, or
+    `chr1, chr2, ... chrX, chrY, chrM`
 """
 
 from os.path import dirname, basename, splitext as split_ext
