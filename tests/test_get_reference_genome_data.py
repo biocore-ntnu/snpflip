@@ -23,7 +23,7 @@ def describe_get_reference_genome_data():
 @pytest.fixture
 def expected_result():
     return pd.read_table(StringIO("""A  T\nT   A\nC   G\nA   T\n"""),
-                         header=None, sep="\s+")
+                         header=None, sep=r"\s+")
 
 
 @pytest.fixture
@@ -36,10 +36,10 @@ def genome_fasta(tmpdir):
 
 @pytest.fixture
 def bim_string():
-    return """1 	rs11511647	0	0	A	T
-1	rs3883674	0	3	C	G
-1	rs12218882	0	5	T	T
-2	rs12218882	0	1	T	T"""
+    return """1 	rs11511647	0	1	A	T
+1	rs3883674	0	4	C	G
+1	rs12218882	0	6	T	T
+2	rs12218882	0	2	T	T"""
 
 @pytest.fixture
 def bim_df(bim_string):

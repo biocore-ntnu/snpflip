@@ -3,7 +3,7 @@
 """
 snpflip
 
-Report reverse and ambiguous strand SNPs.
+Report reverse strand and ambiguous strand SNPs.
 (Visit github.com/endrebak/snp-flip for examples and help.)
 
 Usage:
@@ -12,21 +12,40 @@ Usage:
 
 Arguments:
     -f FA --fasta-genome=FA    fasta genome
-    -b BIM --bim-file=BIM      plink binary format plink file
+    -b BIM --bim-file=BIM      plink bed file (extended variant information file)
 
 Options:
     -h --help                   show this message
-    -o PRE --output-prefix=PRE  the prefix of the output-files [default: output/snpflip]
+    -o PRE --output-prefix=PRE  the prefix of the output-files
+                                (./snpflip_output/<bim_basename> by default)
 """
+
+from os.path import dirname, basename, splitext as split_ext
+from subprocess import call
 
 import docopt
 
-from sys import stdout
 from snp_flip.table import create_snp_table, find_strand
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
-    print(args)
+
     snp_table = create_snp_table(args["--bim-file"], args["--fasta-genome"])
     snp_table = find_strand(snp_table)
-    snp_table.to_csv(stdout, sep="\t")
+
+    prefix = args["--output-prefix"]
+
+    if not prefix:
+        prefix = "snpflip_output/" + basename(split_ext(args["--bim-file"])[0])
+
+    if "/" in prefix:
+        call("mkdir -p {}".format(dirname(prefix)), shell=True)
+
+    reverse = snp_table["strand"] == "reverse"
+    ambiguous = snp_table["strand"] == "ambiguous"
+
+    snp_table[reverse]["snp_name"].to_csv(prefix + ".reverse", sep="\t",
+                                          index=False)
+    snp_table[ambiguous]["snp_name"].to_csv(prefix + ".ambiguous", sep="\t",
+                                            index=False)
+    snp_table.to_csv(prefix + ".annotated_bim", sep="\t", index=False)
