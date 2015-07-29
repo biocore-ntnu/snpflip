@@ -26,10 +26,10 @@ def find_strand(bim_table):
     ambiguous_mask = (forward_mask & reverse_mask) | \
                      (~(forward_mask | reverse_mask))
 
-    new_series = bim_table["reference"].copy()
-    new_series[forward_mask] = "forward"
-    new_series[reverse_mask] = "reverse"
-    new_series[ambiguous_mask] = "ambiguous"
-    new_series.name = "strand"
+    strand_series = bim_table["reference"].copy()
+    strand_series[forward_mask] = "forward"
+    strand_series[reverse_mask] = "reverse"
+    strand_series[ambiguous_mask] = "ambiguous"
+    strand_series.name = "strand"
 
-    return pd.concat([bim_table, new_series], axis=1)
+    return pd.concat([bim_table, strand_series], axis=1)

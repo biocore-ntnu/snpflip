@@ -21,7 +21,7 @@ def get_reference_genome_data(bim_table, genome_fasta):
     chromosome_data = []
     for chromosome, nucleotides in genome_dict.items():
 
-        positions = bim_table[bim_table["chromosome"] == chromosome]["position"]
+        positions = bim_table[bim_table["chromosome"] == chromosome]["position"] - 1
         _get_snps = itemgetter(*list(positions))
 
         snp_nucleotides = [snp.upper() for snp in _get_snps(str(nucleotides))]
