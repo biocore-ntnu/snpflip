@@ -40,6 +40,7 @@ Arguments:
 
 Options:
     -h --help                   show this message
+    -v --version                show the version number
     -o PRE --output-prefix=PRE  the prefix of the output-files
                                 (./snpflip_output/<bim_basename> by default)
 
