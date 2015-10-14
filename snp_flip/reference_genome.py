@@ -18,6 +18,9 @@ def get_reference_genome_data(bim_table, genome_fasta):
 
     _warn_about_bim_chromos_not_in_fa(bim_table, genome_dict)
 
+    overlapping_chromosomes = set(genome_dict.keys()).intersection(set(bim_table.chromosome.drop_duplicates()))
+    genome_dict = {c: d for c, d in genome_dict.items() if c in overlapping_chromosomes}
+
     chromosome_data = []
     for chromosome, nucleotides in genome_dict.items():
 

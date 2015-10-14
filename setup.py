@@ -1,10 +1,12 @@
 from setuptools import setup
 
+from snp_flip.version import __version__
+
 setup(
     name = "snpflip",
     packages = ["snp_flip"],
     scripts = ["bin/snpflip"],
-    version = "0.0.1",
+    version = __version__,
     description = "Report reverse and ambiguous strand SNPs.",
     author = "Endre Bakken Stovner",
     author_email = "endrebak@stud.ntnu.no",

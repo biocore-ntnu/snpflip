@@ -2,6 +2,16 @@
 
 snpflip finds reverse and ambiguous strand SNPs.
 
+##Changelog
+
+```
+# 0.0.2 (14.10.2015)
+## Changes
+- Fixed bug that prevented snpflip from working when the fasta file contained
+  chromosomes not in the bim file.
+- Add version info (snpflip -v).
+```
+
 ##Main use cases
 
 - **Generate a list of SNPs not on the reference strand:** Many bioinformatics applications require the SNPs to be on the reference strand. By running snpflip on your GWAS data you'll find the SNPs that need to be flipped.
@@ -22,6 +32,7 @@ Report reverse and ambiguous strand SNPs.
 Usage:
     snpflip --fasta-genome=FA --bim-file=BIM [--output-prefix=PRE]
     snpflip --help
+    snpflip --version
 
 Arguments:
     -f FA --fasta-genome=FA     fasta genome
