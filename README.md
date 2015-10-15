@@ -6,7 +6,6 @@ snpflip finds reverse and ambiguous strand SNPs.
 
 ```
 # 0.0.2 (14.10.2015)
-
 - Fixed bug that prevented snpflip from working when the fasta file contained
   chromosomes not in the bim file.
 - Add version info (snpflip -v).
