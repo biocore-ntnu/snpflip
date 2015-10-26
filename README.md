@@ -70,7 +70,7 @@ The `.reverse` and `.ambiguous` output files can be used as input to Plink. This
 
 ##Extended example
 
-This example uses the example files in the example_files catalog.
+The files used below are found in the `examples` directory.
 
 ```
 $ cat examples/example.fa
