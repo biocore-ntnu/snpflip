@@ -5,6 +5,9 @@ snpflip finds reverse and ambiguous strand SNPs.
 ##Changelog
 
 ```
+# 0.0.3 (14.10.2015)
+- Fixed bug that prevented snpflip from working when the bim file contained
+  positions that were N in the fasta file.
 # 0.0.2 (14.10.2015)
 - Fixed bug that prevented snpflip from working when the fasta file contained
   chromosomes not in the bim file.
@@ -70,42 +73,53 @@ The `.reverse` and `.ambiguous` output files can be used as input to Plink. This
 This example uses the example files in the example_files catalog.
 
 ```
-$ cat example_files/example.fa
+$ cat examples/example.fa
 >chr1
 ACT
 >chr2
 CCC
+>chrX
+NNN
 >chrY
 ACT
+> chr27
+ACT
 
-$ cat example_files/example.bim
+$ cat examples/example.bim
 1 snp1 0 1 A C
 1 snp2 0 2 A T
 1 snp3 0 3 A G
 2 snp4 0 1 A G
 2 esv5 0 2 AA G
-Y snp6 0 2 A G
+X inv1 0 2 A G
+Y snp6 0 1 A G
+25 snp7 0 2 A G
 
 $ snpflip -b examples/example.bim -f \
  examples/example.fa -op extended_example
+ # Chromosome 25 in .bim, but not in fasta file.
+ # There were 1 'N' nucleotides in chromosome X
 
 $ head extended_example.annotated_bim
-chromosome	snp_name	genetic_distance	position	allele_1	allele_2	reference	reference_rev	strand
-1	snp1	0	1	A	C	A	T	forward
-1	snp2	0	2	A	T	C	G	ambiguous
-1	snp3	0	3	A	G	T	A	reverse
-2	snp4	0	1	A	G	C	G	reverse
-2	esv5	0	2	AA	G	C	G	reverse
-Y	snp6	0	2	A	G	C	G	reverse
+chromosome	0_idx_position	snp_name	genetic_distance	allele_1	allele_2	reference	reference_re	strand
+1	0	snp1	0	A	C	A	T	forward
+1	1	snp2	0	A	T	C	G	ambiguous
+1	2	snp3	0	A	G	T	A	reverse
+2	0	snp4	0	A	G	C	G	reverse
+2	1	esv5	0	AA	G	C	G	reverse
+25	1	snp7	0	A	G			ambiguous
+X	1	inv1	0	A	G	N	N	ambiguous
+Y	0	snp6	0	A	G	A	T	forward
 
 $ head extended_example.ambiguous
 snp2
+snp7
+inv1
 
 $ head extended_example.reverse
 snp3
 snp4
 esv5
-snp6
 ```
 
 ##Dependencies

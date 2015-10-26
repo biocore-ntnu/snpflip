@@ -23,8 +23,12 @@ def find_strand(bim_table):
     reverse_mask = (bim_table["reference_rev"] == bim_table["allele_1"]) | \
                    (bim_table["reference_rev"] == bim_table["allele_2"])
 
+    N_mask = bim_table["reference"] == "N"
+
     ambiguous_mask = (forward_mask & reverse_mask) | \
-                     (~(forward_mask | reverse_mask))
+                     (~(forward_mask | reverse_mask)) | \
+                     N_mask
+
 
     strand_series = bim_table["reference"].copy()
     strand_series[forward_mask] = "forward"

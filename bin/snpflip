@@ -53,8 +53,10 @@ if __name__ == '__main__':
     reverse = snp_table["strand"] == "reverse"
     ambiguous = snp_table["strand"] == "ambiguous"
 
+    snp_table.index.names = ["chromosome", "0_idx_position"]
+
     snp_table[reverse]["snp_name"].to_csv(prefix + ".reverse", sep="\t",
                                           index=False)
     snp_table[ambiguous]["snp_name"].to_csv(prefix + ".ambiguous", sep="\t",
                                             index=False)
-    snp_table.to_csv(prefix + ".annotated_bim", sep="\t", index=False)
+    snp_table.to_csv(prefix + ".annotated_bim", sep="\t")
