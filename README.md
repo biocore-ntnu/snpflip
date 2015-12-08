@@ -64,7 +64,7 @@ The `.reverse` and `.ambiguous` output files can be used as input to Plink. This
 
 ####Example usage with plink:
 
-```snipflip -b snp_data.bim -f genome.fa -op snpflip_output```
+```snipflip -b snp_data.bim -f genome.fa -o snpflip_output```
 
 ```plink --file snp_data --flip snpflip_output.reverse --make-bed```
 
@@ -96,7 +96,7 @@ Y snp6 0 1 A G
 25 snp7 0 2 A G
 
 $ snpflip -b examples/example.bim -f \
- examples/example.fa -op extended_example
+ examples/example.fa -o extended_example
  # Chromosome 25 in .bim, but not in fasta file.
  # There were 1 'N' nucleotides in chromosome X
 
