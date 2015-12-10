@@ -26,6 +26,10 @@ Note:
     chromosomes in the `.bim` file must be called `1, 2, ... X, Y, M`
     while the chromosomes in the fasta file must be called the same, or
     `chr1, chr2, ... chrX, chrY, chrM`
+
+    If there is whitespace after the chromosome name in the fasta file,
+    additional text is allowed, e.g.
+    >1 dna:chromosome chromosome:GRCh37:1:1:249250621:1
 """
 
 from os.path import dirname, basename, splitext as split_ext

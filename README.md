@@ -5,11 +5,15 @@ snpflip finds reverse and ambiguous strand SNPs.
 ##Changelog
 
 ```
+# 0.0.4 (10.12.2015)
+- Fix error that occured when using a large bim-file.
+- Update help-message to include info on allowed chromosome names in fasta
+  files.
 # 0.0.3 (14.10.2015)
-- Fixed bug that prevented snpflip from working when the bim file contained
+- Fix bug that threw error when the bim file contained
   positions that were N in the fasta file.
 # 0.0.2 (14.10.2015)
-- Fixed bug that prevented snpflip from working when the fasta file contained
+- Fix bug that aborted execution when the fasta file contained
   chromosomes not in the bim file.
 - Add version info (snpflip -v).
 ```
@@ -51,6 +55,10 @@ Note:
     chromosomes in the `.bim` file must be called `1, 2, ... X, Y, M`
     while the chromosomes in the fasta file must be called the same, or
     `chr1, chr2, ... chrX, chrY, chrM`
+
+    If there is whitespace after the chromosome name in the fasta file,
+    additional text is allowed, e.g.
+    >1 dna:chromosome chromosome:GRCh37:1:1:249250621:1
 ```
 
 ##Output
@@ -74,7 +82,7 @@ The files used below are found in the `examples` directory.
 
 ```
 $ cat examples/example.fa
->chr1
+>chr1 dummy text
 ACT
 >chr2
 CCC
@@ -137,6 +145,14 @@ Use [Plink](https://www.cog-genomics.org/plink2/data) to convert your files to t
 ####How do you decide the SNP type and what strand it came from?
 
 Since the reference genome is based on the forward strand, finding an 'A' in the reference genome and the bim-file for said SNP tells you that it is from the forward strand. If the SNP were a 'T' it would have been a reverse strand SNP.
+
+####Where can I find fasta indexes?
+
+The 1000 genomes ftp has a [hg19 fasta](http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz).
+
+For other species/builds/versions, your best bet is to search for `goldenpath <genome_name>`, i.e.
+[duckduckgo](https://duckduckgo.com/?q=goldenpath+mm10). You will often
+find zips of chromosome files that you need to concatenate to produce a full genome fasta.
 
 ##Issues
 
