@@ -10,7 +10,7 @@ def create_snp_table(bim_file, fa_file):
 
     reference_genome_data = get_reference_genome_data(bim_table, fa_file)
 
-    snp_table = pd.concat([bim_table, reference_genome_data], axis=1)
+    snp_table = bim_table.join(reference_genome_data)
 
     return snp_table
 
