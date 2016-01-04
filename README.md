@@ -153,9 +153,9 @@ Since the reference genome is based on the forward strand, finding an 'A' in the
 
 The 1000 genomes ftp has a [hg19 fasta](http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz).
 
-For other species/builds/versions, your best bet is to search for `goldenpath <genome_name>`, i.e.
+For other species/builds/versions, your best bet is this [NCBI ftp](ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/) or to search for `goldenpath <genome_name>`, i.e.
 [duckduckgo](https://duckduckgo.com/?q=goldenpath+mm10). You will often
-find zips of chromosome files that you need to concatenate to produce a full genome fasta.
+find zips of chromosome files that you need to unzip and then concatenate to produce a full genome fasta.
 
 ##Issues
 
