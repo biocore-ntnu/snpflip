@@ -28,7 +28,7 @@ Note:
     `chr1, chr2, ... chrX, chrY, chrM`
 
     If there is whitespace after the chromosome name in the fasta file,
-    additional text is allowed, e.g.
+    additional text is allowed, e.g. the below fasta id is accepted:
     >1 dna:chromosome chromosome:GRCh37:1:1:249250621:1
 """
 

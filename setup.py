@@ -13,7 +13,7 @@ setup(
     url = "http://github.com/endrebak/snp-flip",
     keywords = ["snp", "gwas", "strand"],
     license = ["GPL-3.0"],
-    install_requires = ["pandas>=0.16", "ebs", "docopt", "pyfaidx"],
+    install_requires = ["pandas>=0.16", "ebs", "docopt", "pyfaidx", "natsort"],
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",

@@ -5,6 +5,9 @@ snpflip finds reverse and ambiguous strand SNPs.
 ##Changelog
 
 ```
+# 0.0.5 (03.01.2016)
+- Add helpful error message if there are no overlapping chromosomes in the
+  bim file and fasta file.
 # 0.0.4 (10.12.2015)
 - Fix error that occured when using a large bim-file.
 - Update help-message to include info on allowed chromosome names in fasta
@@ -57,7 +60,7 @@ Note:
     `chr1, chr2, ... chrX, chrY, chrM`
 
     If there is whitespace after the chromosome name in the fasta file,
-    additional text is allowed, e.g.
+    additional text is allowed, e.g. the below fasta id is accepted:
     >1 dna:chromosome chromosome:GRCh37:1:1:249250621:1
 ```
 
