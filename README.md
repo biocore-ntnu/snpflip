@@ -45,7 +45,7 @@ Usage:
 
 Arguments:
     -f FA --fasta-genome=FA     fasta genome
-    -b BIM --bim-file=BIM       plink bed file (extended variant information)
+    -b BIM --bim-file=BIM       plink bim file (extended variant information)
 
 Options:
     -h --help                   show this message
