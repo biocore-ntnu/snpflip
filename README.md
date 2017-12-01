@@ -1,10 +1,12 @@
-#snpflip
+# snpflip
 
 snpflip finds reverse and ambiguous strand SNPs.
 
-##Changelog
+## Changelog
 
 ```
+# 0.0.6 (01.12.2017)
+- Fix duplicate SNPs in output
 # 0.0.5 (03.01.2016)
 - Add helpful error message if there are no overlapping chromosomes in the
   bim file and fasta file.
@@ -21,16 +23,16 @@ snpflip finds reverse and ambiguous strand SNPs.
 - Add version info (snpflip -v).
 ```
 
-##Main use cases
+## Main use cases
 
 - **Generate a list of SNPs not on the reference strand:** Many bioinformatics applications require the SNPs to be on the reference strand. By running snpflip on your GWAS data you'll find the SNPs that need to be flipped.
 
 - **Quality controlling your GWAS data and pruning it:** If your GWAS data contains ambiguous SNPs, these might ruin the usefulness of your data for certain purposes (e.g., imputation). By running snpflip you can get the names of the ambiguous SNPs and remove them with Plink.
 
-##Install
+## Install
 `pip install snpflip`
 
-##Usage
+## Usage
 
 ```
 snpflip
@@ -64,7 +66,7 @@ Note:
     >1 dna:chromosome chromosome:GRCh37:1:1:249250621:1
 ```
 
-##Output
+## Output
 
 The output files are:
 - `<prefix>.reverse` - The SNPs that are on the reverse strand.
@@ -73,13 +75,13 @@ The output files are:
 
 The `.reverse` and `.ambiguous` output files can be used as input to Plink. This is convenient if you want to remove the ambiguous strand SNPs or flip the SNPs that are on the reverse strand.
 
-####Example usage with plink:
+#### Example usage with plink:
 
 ```snipflip -b snp_data.bim -f genome.fa -o snpflip_output```
 
 ```plink --file snp_data --flip snpflip_output.reverse --make-bed```
 
-##Extended example
+## Extended example
 
 The files used below are found in the `examples` directory.
 
@@ -133,23 +135,23 @@ snp4
 esv5
 ```
 
-##Dependencies
+## Dependencies
 
 `pandas`, `docopt` and `pyfaidx`. These are automatically installed when using pip.
 
-##FAQ
+## FAQ
 
-####My SNP-data is not in Plink .bed+.bim+.fam format. What do I do?
+#### My SNP-data is not in Plink .bed+.bim+.fam format. What do I do?
 
 Use [Plink](https://www.cog-genomics.org/plink2/data) to convert your files to the binary plink format. Example:
 
 `plink --vcf yourfile.vcf --make-bed --out your_prefix`
 
-####How do you decide the SNP type and what strand it came from?
+#### How do you decide the SNP type and what strand it came from?
 
 Since the reference genome is based on the forward strand, finding an 'A' in the reference genome and the bim-file for said SNP tells you that it is from the forward strand. If the SNP were a 'T' it would have been a reverse strand SNP.
 
-####Where can I find fasta indexes?
+#### Where can I find fasta indexes?
 
 The 1000 genomes ftp has a [hg19 fasta](http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz).
 
@@ -157,7 +159,7 @@ For other species/builds/versions, your best bet is this NCBI ftp: ftp://ftp.ncb
 [duckduckgo](https://duckduckgo.com/?q=goldenpath+mm10). You will often
 find zips of chromosome files that you need to unzip and then concatenate to produce a full genome fasta.
 
-##Issues
+## Issues
 
 See https://github.com/endrebak/snpflip/issues
 
