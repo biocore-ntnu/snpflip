@@ -2,7 +2,7 @@
 
 snpflip finds reverse and ambiguous strand SNPs.
 
-Note: snpflip is available as-is and unsupported. If you have questions, biostars might be of help.
+# Note: snpflip is available as-is and unsupported. If you have questions, biostars might be of help.
 
 ## Changelog
 
