@@ -175,7 +175,14 @@ fn publish(staged: Vec<(PathBuf, NamedTempFile)>, force: bool) -> Result<()> {
     let result: Result<()> = (|| {
         if force {
             for (path, _) in &staged {
-                if path.try_exists()? {
+                if let Ok(metadata) = fs::symlink_metadata(path) {
+                    // Outputs may have changed since preflight; never move anything
+                    // but a regular file (Windows can rename a directory over a file).
+                    ensure!(
+                        metadata.is_file(),
+                        "refusing to replace non-regular output {}",
+                        path.display()
+                    );
                     let backup = NamedTempFile::new_in(path.parent().unwrap_or(Path::new(".")))?
                         .into_temp_path();
                     fs::rename(path, &backup)
