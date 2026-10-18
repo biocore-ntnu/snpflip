@@ -1,0 +1,27 @@
+[package]
+name = "snpflip"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+description = "Check PLINK BIM allele orientation against a reference genome"
+authors = ["Endre Bakken Stovner"]
+license = "GPL-3.0-only"
+repository = "https://github.com/biocore-ntnu/snpflip"
+readme = "README.md"
+keywords = ["plink", "gwas", "snp", "strand", "genomics"]
+categories = ["command-line-utilities", "science::bioinformatics"]
+include = ["/src/**", "/tests/*.rs", "/examples/*", "/Cargo.toml", "/Cargo.lock", "/README.md", "/CHANGELOG.md", "/LICENSE"]
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4.6", features = ["derive"] }
+flate2 = "1.1"
+noodles-bgzf = "0.52"
+noodles-core = "0.21"
+noodles-fasta = "0.67"
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+strip = true
+

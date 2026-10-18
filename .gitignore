@@ -1,2 +1,6 @@
 *.pyc
 *.fai
+*.gzi
+/target/
+/snpflip_output/
+/dist/

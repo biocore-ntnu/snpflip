@@ -1,170 +1,237 @@
 # snpflip
 
-snpflip finds reverse and ambiguous strand SNPs.
+Check PLINK BIM allele orientation against a reference genome. Writes headerless
+variant ID lists, reference allele assignments, and a report containing **every
+input row in its original order**.
 
-# Note: snpflip is available as-is and unsupported. If you have questions, biostars might be of help.
-
-## Changelog
-
-```
-# 0.0.6 (01.12.2017)
-- Fix duplicate SNPs in output
-# 0.0.5 (03.01.2016)
-- Add helpful error message if there are no overlapping chromosomes in the
-  bim file and fasta file.
-# 0.0.4 (10.12.2015)
-- Fix error that occured when using a large bim-file.
-- Update help-message to include info on allowed chromosome names in fasta
-  files.
-# 0.0.3 (14.10.2015)
-- Fix bug that threw error when the bim file contained
-  positions that were N in the fasta file.
-# 0.0.2 (14.10.2015)
-- Fix bug that aborted execution when the fasta file contained
-  chromosomes not in the bim file.
-- Add version info (snpflip -v).
-```
-
-## Main use cases
-
-- **Generate a list of SNPs not on the reference strand:** Many bioinformatics applications require the SNPs to be on the reference strand. By running snpflip on your GWAS data you'll find the SNPs that need to be flipped.
-
-- **Quality controlling your GWAS data and pruning it:** If your GWAS data contains ambiguous SNPs, these might ruin the usefulness of your data for certain purposes (e.g., imputation). By running snpflip you can get the names of the ambiguous SNPs and remove them with Plink.
+This Rust successor to Python snpflip 0.0.6 needs no Python, pandas, htslib, or
+write access to the reference directory.
 
 ## Install
-`pip install snpflip`
+
+Prebuilt binaries for each release are on the
+[releases page](https://github.com/biocore-ntnu/snpflip/releases), with
+`SHA256SUMS`. To build with Rust 1.91 or newer:
+
+```sh
+cargo install snpflip --locked          # from crates.io
+cargo install --path . --locked         # from a checkout
+snpflip --help
+```
+
+Or run `cargo build --release --locked` for `target/release/snpflip`
+(`snpflip.exe` on Windows). The release-build workflow prepares archives for Linux
+x86-64 (static musl), macOS Apple Silicon and Intel, and Windows x86-64.
 
 ## Usage
 
-```
-snpflip
+```sh
+snpflip -b cohort.bim -f reference.fa -o qc/cohort
 
-Report reverse and ambiguous strand SNPs.
-(Visit github.com/endrebak/snpflip for examples and help.)
+# Human numeric sex/mitochondrial chromosome codes:
+snpflip -b cohort.bim.gz -f reference.fa.gz -o qc/cohort --chromosome-set human
 
-Usage:
-    snpflip --fasta-genome=FA --bim-file=BIM [--output-prefix=PRE]
-    snpflip --help
-    snpflip --version
-
-Arguments:
-    -f FA --fasta-genome=FA     fasta genome
-    -b BIM --bim-file=BIM       plink bim file (extended variant information)
-
-Options:
-    -h --help                   show this message
-    -v --version                show the version number
-    -o PRE --output-prefix=PRE  the prefix of the output-files
-                                (./snpflip_output/<bim_basename> by default)
-
-Note:
-    To enable snpflip to match the chromosomes in the `.bim` and `.fa` files, the
-    chromosomes in the `.bim` file must be called `1, 2, ... X, Y, M`
-    while the chromosomes in the fasta file must be called the same, or
-    `chr1, chr2, ... chrX, chrY, chrM`
-
-    If there is whitespace after the chromosome name in the fasta file,
-    additional text is allowed, e.g. the below fasta id is accepted:
-    >1 dna:chromosome chromosome:GRCh37:1:1:249250621:1
+# Included example:
+cargo run -- -b examples/example.bim -f examples/example.fa -o qc/example \
+  --chromosome-set human
 ```
 
-## Output
+The original `-b`/`--bim-file`, `-f`/`--fasta-genome`, `-o`/`--output-prefix`,
+`--help`, and `-v`/`--version` options retain their meanings. The default prefix
+is `snpflip_output/<BIM basename>` with compression and BIM extensions removed.
+Use `--force` to replace existing outputs.
 
-The output files are:
-- `<prefix>.reverse` - The SNPs that are on the reverse strand.
-- `<prefix>.ambiguous` - The SNPs that cannot be assigned to a strand.
-- `<prefix>.annotated_bim` - Strand annotated bim table.
+BIM and FASTA inputs can be plain, gzip, concatenated gzip, or BGZF; compression
+is detected from contents. BIM requires exactly six whitespace-separated fields
+per nonempty line. IDs and field spellings are preserved, including leading zeros
+and literal `NA` or `null`. Positions must be signed 64-bit integers and genetic
+distances finite numbers. Blank BIM lines are skipped. Malformed rows fail with
+line context.
 
-The `.reverse` and `.ambiguous` output files can be used as input to Plink. This is convenient if you want to remove the ambiguous strand SNPs or flip the SNPs that are on the reverse strand.
+Either input may be `-` for standard input, and pipes or process substitution
+such as `-b <(zcat cohort.bim.gz)` work. snpflip reads the BIM more than once to
+keep memory low, so a BIM that is not a regular file is copied, decompressed,
+to an unnamed temporary file (in `TMPDIR`) while it is read. A regular BIM file
+that changes during a run fails. A piped FASTA is always streamed.
 
-#### Example usage with plink:
+## Interpretation
 
-```snipflip -b snp_data.bim -f genome.fa -o snpflip_output```
+Forward/reverse mean **compatible with the supplied reference**. They do not
+prove the genome build or assay strand convention. Investigate high mismatch
+rates. This tool does not perform liftover or infer strand conventions from
+frequencies, LD, or probe sequences.
 
-```plink --file snp_data --flip snpflip_output.reverse --make-bed```
+Only two single-base A/C/G/T alleles and an A/C/G/T reference base can receive a
+forward/reverse classification. Case is ignored for comparison; equal alleles
+such as A/A are allowed. Missing/ambiguous alleles (`0`, `.`, IUPAC ambiguity
+codes) stay unresolved. Multi-base sequence alleles and symbolic `I`, `D`, `-`,
+or `*` are unsupported non-SNPs. Other allele codes are invalid. Indels are never
+classified by comparing them to a single reference base.
 
-## Extended example
+| Category | Meaning |
+| --- | --- |
+| `forward` | An allele matches reference; neither matches its complement |
+| `reverse` | An allele matches the complement; neither matches reference |
+| `palindromic` | A/T or C/G compatible with both orientations |
+| `mismatch` | Valid SNP alleles match neither orientation |
+| `non_snp` | Unsupported sequence or symbolic non-SNP allele |
+| `missing` | Missing/ambiguous allele or unavailable/unresolved reference |
+| `invalid` | Invalid allele code |
 
-The files used below are found in the `examples` directory.
+Palindromic SNPs are never automatically flipped. Palindromicity is a separate
+flag: A/T against C is both a mismatch and palindromic; A/T against N is missing
+and palindromic. Allele problems take precedence in `category`, while `reason`
+retains allele and reference problems. Invalid positions can also have a missing
+chromosome.
 
+## Outputs
+
+Every run creates these files, including empty lists:
+
+| Suffix | Contents |
+| --- | --- |
+| `.annotated.tsv` | Every original row plus annotations |
+| `.forward`, `.reverse` | IDs compatible with each orientation |
+| `.palindromic`, `.mismatch`, `.non_snp`, `.missing`, `.invalid` | IDs in each unresolved category |
+| `.ambiguous` | Union of all unresolved categories, in input order |
+| `.ref_allele` | Two columns: ID and forward reference base, for resolved rows |
+
+**Every ID list and `.ref_allele` excludes all repeated IDs and missing IDs (`.`).**
+This applies even when repeated records agree: ID lists cannot uniquely target
+those rows. They remain in the report with `id_status=duplicate` or `missing`;
+the stderr summary counts withheld rows. Resolve those IDs before relying on
+these lists to process every variant. Lists have no headers and use LF newlines.
+
+Annotation schema version **1** begins with the six original BIM fields, with
+**1-based positions**, then:
+
+| Column | Meaning |
+| --- | --- |
+| `schema_version` | `1` |
+| `row` | 1-based record ordinal, excluding blank lines |
+| `input_line` | Physical BIM line number |
+| `reference_chromosome` | Actual FASTA name, or empty if absent |
+| `reference`, `reference_rev` | Uppercase reference and IUPAC complement, or empty |
+| `strand` | `forward`, `reverse`, or legacy-compatible `ambiguous` |
+| `category` | Detailed category above |
+| `reason` | Semicolon-separated reasons; empty for resolved rows |
+| `palindromic` | `true` or `false`, independent of category |
+| `id_status` | `unique`, `duplicate`, or `missing` |
+
+Reasons are `invalid_allele`, `unsupported_non_snp`,
+`missing_or_ambiguous_allele`, `missing_chromosome`, `zero_position`,
+`negative_position`, `out_of_range`, `reference_n`, `ambiguous_reference`,
+`palindromic`, and `reference_mismatch`.
+
+The annotation is **not a replacement BIM**: it has a header and extra columns.
+Never substitute it for the BIM accompanying a BED file.
+
+## Chromosome names
+
+The default `--chromosome-set generic` removes one optional lowercase `chr`
+prefix and treats `M`/`MT` as aliases. Arbitrary complete contig names are
+supported: `2L`, `chrEBV`, `chrI`, `NC_000001.11`, etc. `2L` never becomes `2`.
+Other name comparisons are case-sensitive.
+
+`--chromosome-set human` additionally maps `23 -> X`, `24 -> Y`, `25 -> X`,
+`26 -> MT`, and `XY`/`PAR1`/`PAR2` to X. PAR coordinates must be expressed on X
+in the selected build; Y coordinates are not converted. These codes apply to BIM
+names only, so FASTA contigs such as `PAR1` keep their own names. Numeric names such as
+`23` remain ordinary contigs in generic mode. PLINK sex-chromosome codes depend
+on the species' chromosome set; see [PLINK chromosome sets](https://www.cog-genomics.org/plink/1.9/input#chr_set).
+
+`--chromosome-map aliases.tsv` takes two columns with no header:
+
+```text
+# BIM chromosome    FASTA name
+1                   NC_000001.11
+2                   NC_000002.12
 ```
-$ cat examples/example.fa
->chr1 dummy text
-ACT
->chr2
-CCC
->chrX
-NNN
->chrY
-ACT
-> chr27
-ACT
 
-$ cat examples/example.bim
-1 snp1 0 1 A C
-1 snp2 0 2 A T
-1 snp3 0 3 A G
-2 snp4 0 1 A G
-2 esv5 0 2 AA G
-X inv1 0 2 A G
-Y snp6 0 1 A G
-25 snp7 0 2 A G
+Mappings apply once to BIM names, never to FASTA names, and replace the
+preset's codes for the mapped names (only the `chr`/`M` normalization applies to
+the target); they are not chained. Duplicate source entries fail. Colliding FASTA names
+such as both `1` and `chr1`, or `M` and `MT`, fail instead of silently choosing one.
 
-$ snpflip -b examples/example.bim -f \
- examples/example.fa -o extended_example
- # Chromosome 25 in .bim, but not in fasta file.
- # There were 1 'N' nucleotides in chromosome X
+## Reference access
 
-$ head extended_example.annotated_bim
-chromosome	0_idx_position	snp_name	genetic_distance	allele_1	allele_2	reference	reference_re	strand
-1	0	snp1	0	A	C	A	T	forward
-1	1	snp2	0	A	T	C	G	ambiguous
-1	2	snp3	0	A	G	T	A	reverse
-2	0	snp4	0	A	G	C	G	reverse
-2	1	esv5	0	AA	G	C	G	reverse
-25	1	snp7	0	A	G			ambiguous
-X	1	inv1	0	A	G	N	N	ambiguous
-Y	0	snp6	0	A	G	A	T	forward
+`--reference-mode auto` uses an existing `<reference>.fai` for plain FASTA, or
+`.fai` plus `<reference>.gzi` for BGZF. Otherwise it scans the reference once with
+a bounded buffer, retaining only requested bases. Ordinary gzip streams when
+only a `.fai` is present. No indexes are created or modified.
 
-$ head extended_example.ambiguous
-snp2
-snp7
-inv1
+`--reference-mode stream` always scans. `--reference-mode indexed` requires
+indexes and a regular FASTA file, and fails otherwise. `--fasta-index path/to/index.fai` selects an
+alternative existing FASTA index and cannot be combined with stream mode. The
+BGZF `.gzi` must still sit beside its reference.
 
-$ head extended_example.reverse
-snp3
-snp4
-esv5
+Indexes must match the exact reference contents. Short/invalid queries fail, but
+not every stale index is detectable. Use stream mode if index provenance is
+uncertain. Indexed reads combine nearby sites into windows of at most 64 KiB.
+Memory scales with BIM records, not chromosome length: about 45 bytes per record,
+or roughly 0.9 GB for 20 million variants.
+
+Reference sequences must contain only IUPAC DNA codes (any case). Anything else,
+including whitespace inside a sequence, fails with the sequence name and
+position, since it usually means the wrong file. Stream mode checks every base;
+indexed mode only reads the windows around requested sites.
+
+## PLINK workflow
+
+Inspect the summary and unresolved rows first. Flip resolved reverse SNPs, remove
+uniquely identified unresolved variants, then assign reference alleles:
+
+```sh
+plink2 --bfile cohort --flip qc/cohort.reverse --exclude qc/cohort.ambiguous \
+  --make-pgen --out cohort.stranded
+plink2 --pfile cohort.stranded --ref-allele qc/cohort.ref_allele 2 1 \
+  --make-pgen --out cohort.forward
 ```
 
-## Dependencies
+For PLINK 1.9, use `--make-bed`/`--bfile` and
+`--a2-allele qc/cohort.ref_allele 2 1` in step two. `--a1-allele` does not mean
+reference assignment. See [PLINK 1.9 allele ordering](https://www.cog-genomics.org/plink/1.9/data#keep_allele_order)
+and [PLINK 2 reference assignment](https://www.cog-genomics.org/plink/2.0/data#ref_allele).
+Missing/repeated IDs receive no action from these lists.
 
-`pandas`, `docopt` and `pyfaidx`. These are automatically installed when using pip.
+Related tools: [PLINK 2 `--ref-from-fa`](https://www.cog-genomics.org/plink/2.0/data#ref_allele)
+for reference assignment, and [bcftools `+fixref`](https://samtools.github.io/bcftools/howtos/plugin.fixref.html)
+for VCF diagnostics/correction. Understand the data's build and strand convention
+before transforming it.
 
-## FAQ
+## Errors and output replacement
 
-#### My SNP-data is not in Plink .bed+.bim+.fam format. What do I do?
+Successful analysis exits 0, including analysis with unresolved rows. Category
+and reason counts, reference access mode, and withheld-ID counts go to stderr.
+Stdout is empty except for help/version. Runtime failures exit 1; CLI usage
+errors exit 2. No chromosome overlap is a runtime failure.
 
-Use [Plink](https://www.cog-genomics.org/plink2/data) to convert your files to the binary plink format. Example:
+Output paths are checked before any input is read, and again before writing.
+Outputs are written during a final pass over the BIM into temporary files in the
+destination directory, then flushed. Existing files require
+`--force`; symlinks, directories, and input files are never replaced. Publication
+errors roll back new files and restore previous outputs. Individual publications
+are atomic, but the whole set is not a crash-atomic transaction. Do not read the
+files while a run is writing.
 
-`plink --vcf yourfile.vcf --make-bed --out your_prefix`
+## Development and migration
 
-#### How do you decide the SNP type and what strand it came from?
+```sh
+cargo test --locked
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+```
 
-Since the reference genome is based on the forward strand, finding an 'A' in the reference genome and the bim-file for said SNP tells you that it is from the forward strand. If the SNP were a 'T' it would have been a reverse strand SNP.
+Tests cover all 64 canonical reference/allele combinations, allele ordering and
+complementation, regression bugs, literal IDs, ambiguous data, chromosome aliases,
+gzip/BGZF, stream/index parity, output rollback, and CLI errors. CI tests Linux,
+macOS, Windows, and the minimum Rust version. The release-build workflow runs
+manually or on a `v*` tag and prepares archives without publishing releases.
 
-#### Where can I find fasta indexes?
+The Python package, executable, and tests have been replaced. Existing PyPI
+installations are separate and must be replaced on PATH. `.annotated_bim` becomes
+schema-versioned `.annotated.tsv` with 1-based coordinates instead of the old
+internal 0-based coordinates. `.reverse`/`.ambiguous` retain their names but omit
+headers and unsafe IDs. See [CHANGELOG.md](CHANGELOG.md).
 
-The 1000 genomes ftp has a [hg19 fasta](http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz).
-
-For other species/builds/versions, your best bet is this NCBI ftp: ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/ or to search for `goldenpath <genome_name>`, i.e.
-[duckduckgo](https://duckduckgo.com/?q=goldenpath+mm10). You will often
-find zips of chromosome files that you need to unzip and then concatenate to produce a full genome fasta.
-
-## Issues
-
-See https://github.com/endrebak/snpflip/issues
-
-Please ask support questions by raising an issue.
-
-![Image](IMG_0401.jpg)
+License: GPL-3.0, preserving the original project's license.

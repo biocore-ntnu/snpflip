@@ -1,0 +1,92 @@
+name: Release builds
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      BUILD_TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install musl tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo test --locked
+      - run: cargo build --release --locked --target "$BUILD_TARGET"
+      - name: Package binary, documentation, and license
+        env:
+          RUNNER_PLATFORM: ${{ runner.os }}
+        run: |
+          mkdir -p dist/package
+          executable=snpflip
+          if [ "$RUNNER_PLATFORM" = Windows ]; then executable=snpflip.exe; fi
+          cp "target/$BUILD_TARGET/release/$executable" dist/package/
+          cp README.md CHANGELOG.md LICENSE dist/package/
+          tar -czf "dist/snpflip-$BUILD_TARGET.tar.gz" -C dist/package .
+      - uses: actions/upload-artifact@v7
+        with:
+          name: snpflip-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check that the tag matches the crate version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
+          if [ "v$version" != "$TAG" ]; then
+            echo "tag $TAG does not match Cargo.toml version $version" >&2
+            exit 1
+          fi
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: snpflip-*
+          path: dist
+          merge-multiple: true
+      - name: Create GitHub release with checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd dist
+          sha256sum *.tar.gz > SHA256SUMS
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --title "snpflip $TAG" --notes "See CHANGELOG.md for changes." \
+            *.tar.gz SHA256SUMS
