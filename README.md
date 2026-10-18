@@ -226,7 +226,8 @@ Tests cover all 64 canonical reference/allele combinations, allele ordering and
 complementation, regression bugs, literal IDs, ambiguous data, chromosome aliases,
 gzip/BGZF, stream/index parity, output rollback, and CLI errors. CI tests Linux,
 macOS, Windows, and the minimum Rust version. The release-build workflow runs
-manually or on a `v*` tag and prepares archives without publishing releases.
+manually or on a `v*` tag; tags matching the crate version publish a GitHub
+release with binaries and `SHA256SUMS`.
 
 The Python package, executable, and tests have been replaced. Existing PyPI
 installations are separate and must be replaced on PATH. `.annotated_bim` becomes
@@ -235,3 +236,5 @@ internal 0-based coordinates. `.reverse`/`.ambiguous` retain their names but omi
 headers and unsafe IDs. See [CHANGELOG.md](CHANGELOG.md).
 
 License: GPL-3.0, preserving the original project's license.
+
+![The Strand Mixture: an old Norwegian tobacco tin](IMG_0401.jpg)
